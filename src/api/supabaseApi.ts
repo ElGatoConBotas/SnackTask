@@ -5,6 +5,8 @@ import { addDays } from '../lib/time';
 /** Turns a database error into our short error code (e.g. "locked"). */
 export class AppError extends Error {
   code: string;
+  /** Raw message from Supabase, shown to help with setup problems. */
+  detail?: string;
   constructor(code: string) {
     super(code);
     this.code = code;
@@ -58,7 +60,12 @@ export function supabaseApi(url: string, key: string): Api {
     async sendCode(email) {
       const redirect = window.location.origin + window.location.pathname;
       const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirect, shouldCreateUser: true } });
-      if (error) throw new AppError(error.status === 429 ? 'rate_limited' : 'send_failed');
+      if (error) {
+        console.error('Supabase sign-in error', error);
+        const e = new AppError(error.status === 429 ? 'rate_limited' : 'send_failed');
+        e.detail = `${error.status ?? ''} ${error.message ?? ''}`.trim();
+        throw e;
+      }
     },
 
     async verifyCode(email, code) {

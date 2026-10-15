@@ -37,7 +37,8 @@ export default function Login() {
 
   const fail = (e: unknown) => {
     const k = 'err.' + (e instanceof AppError ? e.code : 'unknown');
-    setError(isKey(k) ? t(k) : t('err.unknown'));
+    const detail = e instanceof AppError && e.detail ? ` (${e.detail})` : '';
+    setError((isKey(k) ? t(k) : t('err.unknown')) + detail);
   };
 
   const send = async (e: FormEvent) => {
